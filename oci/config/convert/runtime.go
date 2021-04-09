@@ -46,7 +46,13 @@ const (
 // configuration specified by the OCI runtime-tools. It is equivalent to
 // MutateRuntimeSpec("runtime-tools/generate".New(), image).Spec().
 func ToRuntimeSpec(rootfs string, image ispec.Image) (rspec.Spec, error) {
-	spec := Example()
+	var spec rspec.Spec
+	switch image.OS {
+		case "linux": spec = Example_Linux()
+		case "freebsd": spec = Example_FreeBSD()
+		default: return rspec.Spec{}, errors.Errorf("unsupported OS: %s", image.OS)
+	}
+
 	if err := MutateRuntimeSpec(&spec, rootfs, image); err != nil {
 		return rspec.Spec{}, err
 	}
@@ -108,10 +114,6 @@ func MutateRuntimeSpec(spec *rspec.Spec, rootfs string, image ispec.Image) error
 	ig, err := igen.NewFromImage(image)
 	if err != nil {
 		return errors.Wrap(err, "creating image generator")
-	}
-
-	if ig.OS() != "linux" {
-		return errors.Errorf("unsupported OS: %s", image.OS)
 	}
 
 	allocateNilStruct(spec)

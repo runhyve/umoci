@@ -24,9 +24,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Example returns an example spec file, used as a "good sane default".
+// Example returns an example spec file for Linux images, used as a "good sane default".
 // XXX: Really we should just use runc's directly.
-func Example() rspec.Spec {
+func Example_Linux() rspec.Spec {
 	return rspec.Spec{
 		Version: rspec.Version,
 		Root: &rspec.Root{
@@ -167,6 +167,53 @@ func Example() rspec.Spec {
 				{
 					Type: "mount",
 				},
+			},
+		},
+	}
+}
+
+// Example returns an example spec file for FreeBSD images, used as a "good sane default".
+// XXX: Really we should just use runc's directly.
+func Example_FreeBSD() rspec.Spec {
+	return rspec.Spec{
+		Version: rspec.Version,
+		Root: &rspec.Root{
+			Path:     "rootfs",
+			Readonly: false,
+		},
+		Process: &rspec.Process{
+			Terminal: true,
+			User:     rspec.User{},
+			Args: []string{
+				"sh",
+			},
+			Env: []string{
+				"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+				"TERM=xterm",
+			},
+			Cwd:             "/",
+			NoNewPrivileges: true,
+			Rlimits: []rspec.POSIXRlimit{
+				{
+					Type: "RLIMIT_NOFILE",
+					Hard: uint64(1024),
+					Soft: uint64(1024),
+				},
+			},
+		},
+		Hostname: "umoci-default",
+		Mounts: []rspec.Mount{
+			{
+				Destination: "/dev",
+				Type:        "devfs",
+				Source:      "devfs",
+				Options:     []string{},
+			},
+			{
+				Destination: "/dev/fd",
+				Type:        "fdescfs",
+				Source:      "fdescfs",
+				Options:     []string{},
 			},
 		},
 	}
